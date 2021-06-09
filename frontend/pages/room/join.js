@@ -13,7 +13,7 @@ export async function getStaticProps() {
   };
 }
 
-const CreateRoomForm = () => {
+const JoinRoomForm = () => {
   const submitHandler = (e) => {
     e.preventDefault();
     console.log("submit");
@@ -51,7 +51,7 @@ export default function JoinRoom() {
       >
         Join Room
       </h1>
-      <CreateRoomForm />
+      <JoinRoomForm />
     </div>
   );
 }
