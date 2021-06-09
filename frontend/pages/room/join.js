@@ -21,6 +21,10 @@ const CreateRoomForm = () => {
   return (
     <form onSubmit={submitHandler}>
       <VStack spacing="1rem" color="white">
+        <FormControl id="roomID" colorScheme="teal" isRequired>
+          <FormLabel>Room ID</FormLabel>
+          <Input />
+        </FormControl>
         <FormControl id="name" colorScheme="teal" isRequired>
           <FormLabel>Your Nickname</FormLabel>
           <Input />
@@ -33,7 +37,7 @@ const CreateRoomForm = () => {
   );
 };
 
-export default function CreateRoom() {
+export default function JoinRoom() {
   return (
     <div className={styles.container}>
       <h1
@@ -45,7 +49,7 @@ export default function CreateRoom() {
           marginBottom: "2rem",
         }}
       >
-        Create Room
+        Join Room
       </h1>
       <CreateRoomForm />
     </div>
