@@ -6,6 +6,7 @@ import {
   FormLabel,
   Button,
 } from "@chakra-ui/react";
+import { useRouter } from "next/router";
 
 export async function getStaticProps() {
   return {
@@ -14,20 +15,26 @@ export async function getStaticProps() {
 }
 
 const JoinRoomForm = () => {
+  const router = useRouter();
   const submitHandler = (e) => {
     e.preventDefault();
-    console.log("submit");
+    router.push({
+      pathname: `/room/${e.target.roomID.value}`,
+      query: {
+        name: e.target.name.value,
+      },
+    });
   };
   return (
     <form onSubmit={submitHandler}>
       <VStack spacing="1rem" color="white">
         <FormControl id="roomID" colorScheme="teal" isRequired>
           <FormLabel>Room ID</FormLabel>
-          <Input />
+          <Input name="roomID" />
         </FormControl>
         <FormControl id="name" colorScheme="teal" isRequired>
           <FormLabel>Your Nickname</FormLabel>
-          <Input />
+          <Input name="name" />
         </FormControl>
         <Button colorScheme="teal" size="lg" width="100%" type="submit">
           Let's Go!
