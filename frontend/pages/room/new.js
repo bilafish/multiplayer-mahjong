@@ -6,6 +6,8 @@ import {
   FormLabel,
   Button,
 } from "@chakra-ui/react";
+import randomWords from "random-words";
+import { useRouter } from "next/router";
 
 export async function getStaticProps() {
   return {
@@ -14,16 +16,23 @@ export async function getStaticProps() {
 }
 
 const CreateRoomForm = () => {
+  const router = useRouter();
   const submitHandler = (e) => {
     e.preventDefault();
-    console.log("submit");
+    const randomRoomID = randomWords(3).join("-");
+    router.push({
+      pathname: `/room/${randomRoomID}`,
+      query: {
+        name: e.target.name.value,
+      },
+    });
   };
   return (
     <form onSubmit={submitHandler}>
       <VStack spacing="1rem" color="white">
         <FormControl id="name" colorScheme="teal" isRequired>
           <FormLabel>Your Nickname</FormLabel>
-          <Input />
+          <Input name="name" />
         </FormControl>
         <Button colorScheme="teal" size="lg" width="100%" type="submit">
           Let's Go!
