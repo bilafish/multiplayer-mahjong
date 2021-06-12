@@ -5,8 +5,6 @@ import io from "socket.io-client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 
-const users = new Array(4).fill(null);
-
 const CharacterSelection = ({
   isCurrentUser,
   isCurrentUserReady,
@@ -193,7 +191,7 @@ export default function GameRoom() {
   const router = useRouter();
   const { id: roomID, name } = router.query;
   // Component States
-  const [user, setUser] = useState(user);
+  const [user, setUser] = useState(null);
   const socketID = user?.id;
   const [isJoined, setIsJoined] = useState(false);
   const [joinError, setJoinError] = useState("");
