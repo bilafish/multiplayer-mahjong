@@ -14,7 +14,6 @@ const CharacterSelection = ({
 }) => {
   const [selectedCharacter, setSelectedCharacter] = useState(1);
   const characterInfo = ["Pink Pong", "Yollow", "Huat Zai"];
-  console.log(isCurrentUserReady);
 
   return (
     <Box
@@ -126,8 +125,12 @@ const UserCard = ({
   );
 };
 
-const LobbyView = ({ users, isCurrentUserHost }) => {
-  const userList = users;
+const LobbyView = ({ users, isCurrentUserHost, isJoined }) => {
+  const userList =
+    users.length < 4
+      ? [...users, ...new Array(4 - users.length).fill(null)]
+      : users;
+  console.log(userList);
   const isCurrentUserReady = true;
   return (
     <>
@@ -142,28 +145,41 @@ const LobbyView = ({ users, isCurrentUserHost }) => {
       >
         Room Lobby
       </h1>
-      <HStack spacing="1rem" mb="2rem" alignItems="flex-start" flexWrap="wrap">
-        {users.map((user) =>
-          user ? (
-            <UserCard
-              user={user}
-              key={user.id}
-              isCurrentUser={true}
-              isCurrentUserReady={isCurrentUserReady}
-              isUserHost={user.isHost}
-            />
-          ) : (
-            <UserCard isEmpty={true} />
-          )
-        )}
-      </HStack>
-      <Button colorScheme="teal" variant="solid" disabled={isCurrentUserReady}>
-        {isCurrentUserHost
-          ? "Start"
-          : isCurrentUserReady
-          ? "Waiting for Host"
-          : "Ready"}
-      </Button>
+      {isJoined && (
+        <>
+          <HStack
+            spacing="1rem"
+            mb="2rem"
+            alignItems="flex-start"
+            flexWrap="wrap"
+          >
+            {userList.map((user) =>
+              user ? (
+                <UserCard
+                  user={user}
+                  key={user.id}
+                  isCurrentUser={true}
+                  isCurrentUserReady={isCurrentUserReady}
+                  isUserHost={user.isHost}
+                />
+              ) : (
+                <UserCard isEmpty={true} />
+              )
+            )}
+          </HStack>
+          <Button
+            colorScheme="teal"
+            variant="solid"
+            disabled={isCurrentUserReady}
+          >
+            {isCurrentUserHost
+              ? "Start"
+              : isCurrentUserReady
+              ? "Waiting for Host"
+              : "Ready"}
+          </Button>
+        </>
+      )}
     </>
   );
 };
@@ -176,10 +192,12 @@ let socket;
 export default function GameRoom() {
   const router = useRouter();
   const { id: roomID, name } = router.query;
-  console.log(name);
   // Component States
-  const [socketID, setSocketID] = useState(null);
+  const [user, setUser] = useState(user);
+  const socketID = user?.id;
   const [isJoined, setIsJoined] = useState(false);
+  const [joinError, setJoinError] = useState("");
+  const [room, setRoom] = useState(null);
   const roomStatus = "pending";
   const mockUsers = [
     {
@@ -202,8 +220,9 @@ export default function GameRoom() {
     socket.emit("join", { name: name, room: roomID }, ({ error, user }) => {
       if (error) {
         alert(error);
+        setJoinError(error);
       } else {
-        setSocketID(user.id);
+        setUser(user);
         setIsJoined(true);
       }
     });
@@ -211,10 +230,22 @@ export default function GameRoom() {
       socket.disconnect();
     };
   }, [name, roomID]);
+
+  useEffect(() => {
+    socket.on("room", ({ room }) => {
+      console.log(room);
+      console.log(room.players);
+      setRoom(room);
+    });
+  }, []);
   return (
     <div className={styles.container}>
       {roomStatus === "pending" && (
-        <LobbyView users={mockUsers} isCurrentUserHost={true}></LobbyView>
+        <LobbyView
+          isJoined={isJoined}
+          users={room !== null ? room.players : mockUsers}
+          isCurrentUserHost={user?.isHost === true}
+        ></LobbyView>
       )}
     </div>
   );
