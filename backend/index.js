@@ -55,6 +55,26 @@ io.on("connect", (socket) => {
     }
   });
 
+  // Player Ready Handler
+  socket.on("playerReady", ({ room }, callback) => {
+    // Check if room exists in room manager
+    if (room in roomManager) {
+      // Get Room object
+      const existingRoom = roomManager[room];
+      const { result, error } = existingRoom.setPlayerReady({ id: socket.id });
+      if (!isNil(error)) {
+        return callback({ error });
+      }
+      io.to(room).emit("room", {
+        room: existingRoom,
+      });
+      return callback({ user: result });
+    }
+    return callback({
+      error: `Room: ${room} does not exist`,
+    });
+  });
+
   socket.on("disconnect", () => {
     console.log(`${socket.id} disconnected.`);
   });

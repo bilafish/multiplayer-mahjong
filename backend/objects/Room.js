@@ -39,6 +39,19 @@ function Room(id) {
     };
   };
 
+  this.setPlayerReady = ({ id }) => {
+    const existingPlayer = this.players.find((player) => player.id === id);
+    if (isNil(existingPlayer)) {
+      return {
+        error: `Player with id: ${id} does not exist`,
+      };
+    }
+    existingPlayer.isReady = true;
+    return {
+      result: existingPlayer,
+    };
+  };
+
   this.removePlayer = ({ id }) => {
     // Check if player exists
     const existingPlayer = players.findIndex((player) => player.id === id);
