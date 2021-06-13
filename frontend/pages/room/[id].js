@@ -5,6 +5,9 @@ import io from "socket.io-client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 
+const ENDPOINT = "http://localhost:5000";
+let socket;
+
 const CharacterSelection = ({
   isCurrentUser,
   isCurrentUserReady,
@@ -16,7 +19,7 @@ const CharacterSelection = ({
   return (
     <Box
       borderWidth="2px"
-      borderColor="teal"
+      borderColor={isCurrentUser ? "pink" : "teal"}
       minH="300px"
       borderRadius="1rem"
       p="1rem"
@@ -47,7 +50,7 @@ const CharacterSelection = ({
           }}
           variant="ghost"
           colorScheme="pink"
-          disabled={isCurrentUserReady}
+          disabled={!isCurrentUser || isCurrentUserReady}
         >
           {"<"}
         </Button>
@@ -64,7 +67,7 @@ const CharacterSelection = ({
           }}
           variant="ghost"
           colorScheme="pink"
-          disabled={isCurrentUserReady}
+          disabled={!isCurrentUser || isCurrentUserReady}
         >
           {">"}
         </Button>
@@ -110,26 +113,54 @@ const UserCard = ({
     <VStack color="white" fontFamily="Proxima Nova">
       <CharacterSelection
         isCurrentUser={isCurrentUser}
-        isCurrentUserReady={isCurrentUser && isCurrentUserReady}
+        isCurrentUserReady={isCurrentUserReady}
         isUserHost={isUserHost}
       />
       {isCurrentUser && (
-        <Tag variant="solid" colorScheme="whatsapp">
+        <Tag
+          variant="solid"
+          colorScheme={isCurrentUserReady ? "whatsapp" : "orange"}
+        >
           {user?.name}
         </Tag>
       )}
-      {!isCurrentUser && <p>{user?.name}</p>}
+      {!isCurrentUser && (
+        <Tag
+          variant="outline"
+          colorScheme={isCurrentUserReady ? "whatsapp" : "orange"}
+        >
+          {user?.name}
+        </Tag>
+      )}
     </VStack>
   );
 };
 
-const LobbyView = ({ users, isCurrentUserHost, isJoined }) => {
+const LobbyView = ({
+  roomID,
+  users,
+  currentUser,
+  isCurrentUserHost,
+  isJoined,
+}) => {
   const userList =
     users.length < 4
       ? [...users, ...new Array(4 - users.length).fill(null)]
       : users;
   console.log(userList);
-  const isCurrentUserReady = true;
+  const isCurrentUserReady =
+    users.find((user) => user?.id === currentUser?.id)?.isReady === true;
+
+  // Event Handlers
+  const readyButtonHandler = () => {
+    socket.emit("playerReady", { room: roomID }, ({ error, user }) => {
+      if (error) {
+        alert(error);
+      } else {
+        console.log(user);
+      }
+    });
+  };
   return (
     <>
       <h1
@@ -151,17 +182,17 @@ const LobbyView = ({ users, isCurrentUserHost, isJoined }) => {
             alignItems="flex-start"
             flexWrap="wrap"
           >
-            {userList.map((user) =>
+            {userList.map((user, index) =>
               user ? (
                 <UserCard
                   user={user}
                   key={user.id}
-                  isCurrentUser={true}
-                  isCurrentUserReady={isCurrentUserReady}
+                  isCurrentUser={currentUser?.id === user.id}
+                  isCurrentUserReady={user.isReady === true}
                   isUserHost={user.isHost}
                 />
               ) : (
-                <UserCard isEmpty={true} />
+                <UserCard isEmpty={true} key={`null-${index + 1}`} />
               )
             )}
           </HStack>
@@ -169,6 +200,7 @@ const LobbyView = ({ users, isCurrentUserHost, isJoined }) => {
             colorScheme="teal"
             variant="solid"
             disabled={isCurrentUserReady}
+            onClick={readyButtonHandler}
           >
             {isCurrentUserHost
               ? "Start"
@@ -182,10 +214,8 @@ const LobbyView = ({ users, isCurrentUserHost, isJoined }) => {
   );
 };
 
+// TODO
 const GameView = () => {};
-
-const ENDPOINT = "http://localhost:5000";
-let socket;
 
 export default function GameRoom() {
   const router = useRouter();
@@ -232,7 +262,6 @@ export default function GameRoom() {
   useEffect(() => {
     socket.on("room", ({ room }) => {
       console.log(room);
-      console.log(room.players);
       setRoom(room);
     });
   }, []);
@@ -241,7 +270,9 @@ export default function GameRoom() {
       {roomStatus === "pending" && (
         <LobbyView
           isJoined={isJoined}
+          roomID={roomID}
           users={room !== null ? room.players : mockUsers}
+          currentUser={user}
           isCurrentUserHost={user?.isHost === true}
         ></LobbyView>
       )}
