@@ -41,7 +41,7 @@ function Room(id) {
 
   this.setPlayerReady = ({ id }) => {
     const existingPlayer = this.players.find((player) => player.id === id);
-    if (!isNil(existingPlayer)) {
+    if (isNil(existingPlayer)) {
       return {
         error: `Player with id: ${id} does not exist`,
       };
