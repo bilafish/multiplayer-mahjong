@@ -168,7 +168,9 @@ const CopyRoomIDButton = ({ roomID }) => {
     <Box mb="2rem" color="white">
       <span>Jio your friends now! Game Link:</span>
       <CopyToClipboard
-        text={`${window.location.origin}/room/join?room=${roomID}`}
+        text={`${
+          process.browser ? window.location.origin : ""
+        }/room/join?room=${roomID}`}
         onCopy={() => {
           setShowCopied(true);
           setTimeout(() => {
@@ -267,9 +269,6 @@ const LobbyView = ({
     </>
   );
 };
-
-// TODO
-const GameView = () => {};
 
 export default function GameRoom() {
   const router = useRouter();
