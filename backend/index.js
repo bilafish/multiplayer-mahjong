@@ -79,6 +79,32 @@ io.on("connect", (socket) => {
     });
   });
 
+  // Player Change Character Handler
+  socket.on(
+    "playerChangeCharacter",
+    ({ room, selectedCharacterID }, callback) => {
+      // Check if room exists in room manager
+      if (room in roomManager) {
+        // Get Room object
+        const existingRoom = roomManager[room];
+        const { result, error } = existingRoom.changeCharacter({
+          id: socket.id,
+          selectedCharacterID: selectedCharacterID,
+        });
+        if (!isNil(error)) {
+          return callback({ error });
+        }
+        io.to(room).emit("room", {
+          room: existingRoom,
+        });
+        return callback({ user: result });
+      }
+      return callback({
+        error: `Room: ${room} does not exist`,
+      });
+    }
+  );
+
   socket.on("disconnect", () => {
     const room = socketManager[socket.id];
     console.log(`${socket.id} disconnected from room: ${room}.`);

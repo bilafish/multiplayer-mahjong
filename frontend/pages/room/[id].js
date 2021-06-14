@@ -12,10 +12,25 @@ const CharacterSelection = ({
   isCurrentUser,
   isCurrentUserReady,
   isUserHost,
+  selectedCharacter,
+  roomID,
 }) => {
-  const [selectedCharacter, setSelectedCharacter] = useState(1);
-  const characterInfo = ["Pink Pong", "Yollow", "Huat Zai"];
+  const { id, name } = selectedCharacter;
 
+  // Event Handlers
+  const changeCharacterButtonHandler = (selectedCharacterID) => {
+    socket.emit(
+      "playerChangeCharacter",
+      { room: roomID, selectedCharacterID },
+      ({ error, user }) => {
+        if (error) {
+          alert(error);
+        } else {
+          console.log(user);
+        }
+      }
+    );
+  };
   return (
     <Box
       borderWidth="2px"
@@ -34,19 +49,17 @@ const CharacterSelection = ({
           height={50}
         ></Image>
       </Box>
-      <Image
-        src={`/img/character${selectedCharacter}.png`}
-        width={200}
-        height={200}
-      ></Image>
+      <Image src={`/img/character${id}.png`} width={200} height={200}></Image>
       <Center w="100%">
         <Button
           onClick={() => {
-            if (selectedCharacter >= 2) {
-              setSelectedCharacter(selectedCharacter - 1);
+            let newCharacterID;
+            if (id >= 2) {
+              newCharacterID = id - 1;
             } else {
-              setSelectedCharacter(3);
+              newCharacterID = 3;
             }
+            changeCharacterButtonHandler(newCharacterID);
           }}
           variant="ghost"
           colorScheme="pink"
@@ -54,16 +67,16 @@ const CharacterSelection = ({
         >
           {"<"}
         </Button>
-        <p style={{ margin: "0 1rem" }}>
-          {characterInfo[selectedCharacter - 1]}
-        </p>
+        <p style={{ margin: "0 1rem" }}>{name}</p>
         <Button
           onClick={() => {
-            if (selectedCharacter < 3) {
-              setSelectedCharacter(selectedCharacter + 1);
+            let newCharacterID;
+            if (id < 3) {
+              newCharacterID = id + 1;
             } else {
-              setSelectedCharacter(1);
+              newCharacterID = 1;
             }
+            changeCharacterButtonHandler(newCharacterID);
           }}
           variant="ghost"
           colorScheme="pink"
@@ -82,6 +95,7 @@ const UserCard = ({
   isCurrentUser,
   isCurrentUserReady,
   isUserHost,
+  roomID,
 }) => {
   if (isEmpty) {
     return (
@@ -115,6 +129,8 @@ const UserCard = ({
         isCurrentUser={isCurrentUser}
         isCurrentUserReady={isCurrentUserReady}
         isUserHost={isUserHost}
+        selectedCharacter={user.selectedCharacter}
+        roomID={roomID}
       />
       {isCurrentUser && (
         <Tag
@@ -190,6 +206,7 @@ const LobbyView = ({
                   isCurrentUser={currentUser?.id === user.id}
                   isCurrentUserReady={user.isReady === true}
                   isUserHost={user.isHost}
+                  roomID={roomID}
                 />
               ) : (
                 <UserCard isEmpty={true} key={`null-${index + 1}`} />
@@ -227,20 +244,6 @@ export default function GameRoom() {
   const [joinError, setJoinError] = useState("");
   const [room, setRoom] = useState(null);
   const roomStatus = "pending";
-  const mockUsers = [
-    {
-      id: 1,
-      name: "Jason",
-      isHost: true,
-    },
-    {
-      id: 2,
-      name: "Sabrina",
-      isHost: false,
-    },
-    null,
-    null,
-  ];
 
   useEffect(() => {
     socket = io(ENDPOINT);
@@ -271,7 +274,7 @@ export default function GameRoom() {
         <LobbyView
           isJoined={isJoined}
           roomID={roomID}
-          users={room !== null ? room.players : mockUsers}
+          users={room !== null ? room.players : []}
           currentUser={user}
           isCurrentUserHost={user?.isHost === true}
         ></LobbyView>

@@ -1,4 +1,5 @@
 const Player = require("./Player");
+const characters = require("../constants/characters");
 const { roomPlayerLimit } = require("../constants/room");
 const { isNil, remove } = require("ramda");
 
@@ -50,6 +51,24 @@ function Room(id) {
     existingPlayer.isReady = true;
     return {
       result: existingPlayer,
+    };
+  };
+
+  this.changeCharacter = ({ id, selectedCharacterID }) => {
+    const existingPlayer = this.players.find((player) => player.id === id);
+    if (isNil(existingPlayer)) {
+      return {
+        error: `Player with id: ${id} does not exist`,
+      };
+    }
+    if (selectedCharacterID in characters) {
+      existingPlayer.selectedCharacter = characters[selectedCharacterID];
+      return {
+        result: existingPlayer,
+      };
+    }
+    return {
+      error: `Selected character ID: ${selectedCharacterID} does not exist`,
     };
   };
 
