@@ -1,9 +1,18 @@
 import styles from "../../styles/Home.module.css";
-import { HStack, VStack, Center, Box, Button, Tag } from "@chakra-ui/react";
+import {
+  HStack,
+  VStack,
+  Center,
+  Box,
+  Button,
+  Tag,
+  Tooltip,
+} from "@chakra-ui/react";
 import Image from "next/image";
 import io from "socket.io-client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import { CopyToClipboard } from "react-copy-to-clipboard";
 
 const ENDPOINT = "http://localhost:5000";
 let socket;
@@ -152,6 +161,33 @@ const UserCard = ({
   );
 };
 
+const CopyRoomIDButton = ({ roomID }) => {
+  const [showCopied, setShowCopied] = useState(false);
+
+  return (
+    <Box mb="2rem" color="white">
+      <span>Jio your friends now! Game Link:</span>
+      <CopyToClipboard
+        text={`${window.location.origin}/room/join?room=${roomID}`}
+        onCopy={() => {
+          setShowCopied(true);
+          setTimeout(() => {
+            setShowCopied(false);
+          }, 1500);
+        }}
+      >
+        <Button
+          variant={showCopied ? "solid" : "outline"}
+          colorScheme="teal"
+          ml="1rem"
+        >
+          {showCopied ? "Copied!" : roomID}
+        </Button>
+      </CopyToClipboard>
+    </Box>
+  );
+};
+
 const LobbyView = ({
   roomID,
   users,
@@ -185,11 +221,12 @@ const LobbyView = ({
           fontWeight: "700",
           color: "white",
           fontSize: "2.5rem",
-          marginBottom: "2rem",
+          marginBottom: "1rem",
         }}
       >
         Room Lobby
       </h1>
+      <CopyRoomIDButton roomID={roomID} />
       {isJoined && (
         <>
           <HStack

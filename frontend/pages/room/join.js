@@ -16,6 +16,7 @@ export async function getStaticProps() {
 
 const JoinRoomForm = () => {
   const router = useRouter();
+  const { room } = router.query;
   const submitHandler = (e) => {
     e.preventDefault();
     router.push({
@@ -30,7 +31,7 @@ const JoinRoomForm = () => {
       <VStack spacing="1rem" color="white">
         <FormControl id="roomID" colorScheme="teal" isRequired>
           <FormLabel>Room ID</FormLabel>
-          <Input name="roomID" />
+          <Input name="roomID" defaultValue={room} />
         </FormControl>
         <FormControl id="name" colorScheme="teal" isRequired>
           <FormLabel>Your Nickname</FormLabel>
