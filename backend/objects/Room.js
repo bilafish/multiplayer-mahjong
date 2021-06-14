@@ -1,10 +1,11 @@
 const Player = require("./Player");
 const { roomPlayerLimit } = require("../constants/room");
-const { isNil } = require("ramda");
+const { isNil, remove } = require("ramda");
 
 function Room(id) {
   this.id = id;
   this.players = [];
+  this.roomStatus = "pending";
 
   // Methods
   this.addPlayer = ({ id, name }) => {
@@ -12,7 +13,7 @@ function Room(id) {
     const existingPlayer = this.players.find((player) => player.name === name);
     if (!isNil(existingPlayer)) {
       // Existing player reconnecting with same name
-      if (existingPlayer.isOnline === false) {
+      if (existingPlayer.isOnline === false && this.roomStatus !== "pending") {
         existingPlayer.isOnline = true;
         return {
           result: existingPlayer,
@@ -54,10 +55,23 @@ function Room(id) {
 
   this.removePlayer = ({ id }) => {
     // Check if player exists
-    const existingPlayer = players.findIndex((player) => player.id === id);
-    if (existingPlayer !== -1) {
-      //TODO: remove player from array
-      return;
+    const existingPlayerIndex = this.players.findIndex(
+      (player) => player.id === id
+    );
+    if (existingPlayerIndex !== -1) {
+      // Check if room status has started
+      if (this.roomStatus !== "pending") {
+        // Set Player object isOnline value
+        this.players[existingPlayerIndex].isOnline = false;
+        return {
+          result: true,
+        };
+      }
+      const newPlayerList = remove(existingPlayerIndex, 1, this.players);
+      this.players = newPlayerList;
+      return {
+        result: true,
+      };
     }
     return {
       error: `Player ${id} not found in room`,
