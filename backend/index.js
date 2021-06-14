@@ -6,6 +6,7 @@ const router = require("./router");
 
 const Room = require("./objects/Room");
 const roomManager = require("./lib/roomManager");
+const socketManager = require("./lib/socketManager");
 
 const app = express();
 const server = http.createServer(app);
@@ -33,9 +34,11 @@ io.on("connect", (socket) => {
         return callback({ error });
       }
       socket.join(room);
+      socketManager[socket.id] = room;
       io.to(room).emit("room", {
         room: existingRoom,
       });
+
       return callback({ user: result });
     } else {
       // Create new room
@@ -48,6 +51,7 @@ io.on("connect", (socket) => {
         return callback({ error });
       }
       socket.join(room);
+      socketManager[socket.id] = room;
       io.to(room).emit("room", {
         room: roomManager[room],
       });
@@ -76,7 +80,21 @@ io.on("connect", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log(`${socket.id} disconnected.`);
+    const room = socketManager[socket.id];
+    console.log(`${socket.id} disconnected from room: ${room}.`);
+    // Check if room exists in room manager
+    if (room in roomManager) {
+      // Get Room object
+      const existingRoom = roomManager[room];
+      const { result, error } = existingRoom.removePlayer({ id: socket.id });
+      if (!isNil(error)) {
+        return;
+      }
+      delete socketManager[socket.id];
+      io.to(room).emit("room", {
+        room: existingRoom,
+      });
+    }
   });
 });
 
