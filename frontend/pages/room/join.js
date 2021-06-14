@@ -19,7 +19,7 @@ const JoinRoomForm = () => {
   const submitHandler = (e) => {
     e.preventDefault();
     router.push({
-      pathname: `/room/${e.target.roomID.value}`,
+      pathname: `/room/${e.target.roomID.value.toLowerCase().trim()}`,
       query: {
         name: e.target.name.value,
       },
