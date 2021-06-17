@@ -2,7 +2,7 @@ import Image from "next/image";
 import styles from "../styles/Home.module.css";
 import { Button, VStack } from "@chakra-ui/react";
 import Link from "next/link";
-
+import splashImg from "../public/splash.png";
 export async function getStaticProps() {
   return {
     props: {},
@@ -13,7 +13,12 @@ export default function Home(props) {
   return (
     <div className={styles.container}>
       <main className={styles.main}>
-        <Image src="/splash.png" width={424} height={424}></Image>
+        <Image
+          src={splashImg}
+          width={424}
+          height={424}
+          placeholder="blur"
+        ></Image>
         <div className={styles.actions}>
           <VStack spacing="2rem">
             <Link href="/room/new">
