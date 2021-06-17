@@ -49,6 +49,13 @@ function Room(id) {
       };
     }
     existingPlayer.isReady = true;
+    // Check if room is full and players are ready
+    const readyPlayers = this.players.filter(
+      (player) => player.isReady === true
+    );
+    if (readyPlayers.length === roomPlayerLimit) {
+      this.roomStatus = "started";
+    }
     return {
       result: existingPlayer,
     };
@@ -87,7 +94,12 @@ function Room(id) {
         };
       }
       const newPlayerList = remove(existingPlayerIndex, 1, this.players);
+      if (newPlayerList.length > 0) {
+        // Set player as new host of room
+        newPlayerList[0].isHost = true;
+      }
       this.players = newPlayerList;
+      // TODO: Set first player in array to host
       return {
         result: true,
       };

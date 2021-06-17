@@ -13,6 +13,8 @@ import io from "socket.io-client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { CopyToClipboard } from "react-copy-to-clipboard";
+import GameView from "../../components/Game/GameView";
+import { isNil } from "ramda";
 
 const ENDPOINT = "http://localhost:5000";
 let socket;
@@ -255,11 +257,25 @@ const LobbyView = ({
           <Button
             colorScheme="teal"
             variant="solid"
-            disabled={isCurrentUserReady}
+            disabled={
+              isCurrentUserReady ||
+              (isCurrentUserHost === true &&
+                !isNil(
+                  userList
+                    .filter((user) => user?.id !== currentUser?.id)
+                    .find((user) => user === null || user?.isReady === false)
+                ))
+            }
             onClick={readyButtonHandler}
           >
             {isCurrentUserHost
-              ? "Start"
+              ? isNil(
+                  userList
+                    .filter((user) => user?.id !== currentUser?.id)
+                    .find((user) => user === null || user?.isReady === false)
+                )
+                ? "Start"
+                : "Waiting for Players"
               : isCurrentUserReady
               ? "Waiting for Host"
               : "Ready"}
@@ -279,7 +295,6 @@ export default function GameRoom() {
   const [isJoined, setIsJoined] = useState(false);
   const [joinError, setJoinError] = useState("");
   const [room, setRoom] = useState(null);
-  const roomStatus = "pending";
 
   useEffect(() => {
     socket = io(ENDPOINT);
@@ -306,7 +321,7 @@ export default function GameRoom() {
   }, []);
   return (
     <div className={styles.container}>
-      {roomStatus === "pending" && (
+      {room?.roomStatus === "pending" && (
         <LobbyView
           isJoined={isJoined}
           roomID={roomID}
@@ -315,6 +330,7 @@ export default function GameRoom() {
           isCurrentUserHost={user?.isHost === true}
         ></LobbyView>
       )}
+      {room?.roomStatus === "started" && <GameView />}
     </div>
   );
 }
